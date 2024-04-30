@@ -1,3 +1,4 @@
+import Layout from "@/layout/layout";
 import { Suspense, lazy } from "react";
 import { Navigate, Routes as ReactRoutes, Route } from "react-router-dom";
 
@@ -9,6 +10,7 @@ const Routes = () => {
   return (
     <ReactRoutes>
       <Route path="/" element={<Navigate to={"reported-bike-thefts"} />} />
+
       <Route
         path="/reported-bike-thefts"
         element={
