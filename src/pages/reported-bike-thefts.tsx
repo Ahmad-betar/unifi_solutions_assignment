@@ -1,29 +1,25 @@
 import { getReportedBikeTheftsType } from "@/api/Type";
 import { getReportedBikeTheftsQuery } from "@/api/reported-bike-thefts";
-import DateRangePicker from "@/components/date-range-picker";
 import Loading from "@/components/loading";
-import NoImg from "@/components/no-image";
+import NoImg from "@/icons/no-image";
 import {
   Card,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { useQueryClient } from "@tanstack/react-query";
-import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
+import Error from "../components/error";
+import Pagination from "@/components/pagination";
+import Filter from "@/components/filter";
+import { useTheme } from "@/components/theme-provider";
+import NoData from "@/components/no-data";
 
 const ReportedBikeThefts = () => {
   const queryClient = useQueryClient();
+  const { theme } = useTheme();
   const [page, setpage] = useState(1);
   const [query, setquery] = useState<string>("");
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
@@ -32,9 +28,6 @@ const ReportedBikeThefts = () => {
     page,
     query,
   });
-  console.log(data, "in");
-
-  console.log(date);
 
   useEffect(() => {
     if (!date?.from && !date?.to) {
@@ -44,7 +37,6 @@ const ReportedBikeThefts = () => {
       queryClient.setQueryData(
         ["get-reported-bike-thefts", page, query],
         (oldData: getReportedBikeTheftsType) => {
-          console.log(oldData, "etstsetset");
           return {
             bikes: oldData.bikes.filter(
               (bike) =>
@@ -56,83 +48,62 @@ const ReportedBikeThefts = () => {
       );
     }
   }, [date]);
-  if (data?.bikes.length === 0) {
-    return <>No data</>;
-  }
+
+  useEffect(() => {
+    setpage(1);
+  }, [query]);
 
   if (isError) {
-    return <>Error......................................................</>;
+    return <Error refetch={refetch} />;
   }
 
-  if (isLoading) {
-    return <Loading />;
-  }
   return (
-    <div className="flex flex-col">
-      <h1 className="dark:text-primary text-5xl">Reported Bike Thefts</h1>
-      <Input
-        value={query}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          setquery(event.target.value);
-        }}
-      />
-      <DateRangePicker date={date} setDate={setDate} />
-      <div className="my-8 grid grid-cols-4 gap-4 ">
-        {data?.bikes.map((bike, idx) => {
-          return (
-            <Card key={idx}>
-              {bike.large_img ? (
-                <img src={bike.thumb} className="rounded-t-xl w-full" alt="" />
-              ) : (
-                <NoImg />
-              )}
-              <CardHeader>
-                <CardTitle>Bike Title : {bike.title}</CardTitle>
-                <CardDescription>
-                  Bike Description :{" "}
-                  {bike.description ? bike.description : "-----"}
-                </CardDescription>
-                <CardDescription></CardDescription>
-                <CardDescription>
-                  Stolen Date :{" "}
-                  {bike.date_stolen
-                    ? new Date(bike.date_stolen * 1000).toLocaleDateString(
-                        "en-US"
-                      )
-                    : null}
-                </CardDescription>
-                <CardDescription>
-                  Stolen Location : {bike.stolen_location ?? null}
-                </CardDescription>
-              </CardHeader>
-
-              <CardFooter></CardFooter>
-            </Card>
-          );
-        })}
-      </div>
-      <Pagination>
-        <PaginationPrevious
-          className={clsx("cursor-pointer", {
-            "cursor-not-allowed": page === 1,
+    <>
+      <Filter date={date} query={query} setDate={setDate} setquery={setquery} />
+      {isLoading ? (
+        <Loading />
+      ) : data?.bikes.length === 0 ? (
+        <NoData />
+      ) : (
+        <div className="mt-8 grid grid-cols-5 gap-4 ">
+          {data?.bikes.map((bike, idx) => {
+            return (
+              <Card key={idx}>
+                {bike.large_img ? (
+                  <img
+                    src={bike.thumb}
+                    className="rounded-t-xl w-full"
+                    alt=""
+                  />
+                ) : (
+                  <NoImg color={theme === "dark" ? "white" : "black"} />
+                )}
+                <CardHeader>
+                  <CardTitle>Case Title : {bike.title}</CardTitle>
+                  <CardDescription>
+                    Case Description :{" "}
+                    {bike.description ? bike.description : "-----"}
+                  </CardDescription>
+                  <CardDescription></CardDescription>
+                  <CardDescription>
+                    Stolen Date :{" "}
+                    {bike.date_stolen
+                      ? new Date(bike.date_stolen * 1000).toLocaleDateString(
+                          "en-US"
+                        )
+                      : null}
+                  </CardDescription>
+                  <CardDescription>
+                    Stolen Location : {bike.stolen_location ?? null}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            );
           })}
-          onClick={() => {
-            if (page > 1) {
-              setpage((prev) => prev - 1);
-            }
-          }}
-        >
-          Before
-        </PaginationPrevious>
-        <PaginationLink>{page}</PaginationLink>
-        <PaginationNext
-          onClick={() => setpage((prev) => prev + 1)}
-          className="cursor-pointer"
-        >
-          Next
-        </PaginationNext>
-      </Pagination>
-    </div>
+        </div>
+      )}
+      <Pagination data={data} page={page} setpage={setpage} />
+    </>
   );
 };
 

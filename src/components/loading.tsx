@@ -4,7 +4,7 @@ import { Card, CardContent } from "./ui/card";
 
 const Loading = () => {
   return (
-    <div className="grid gap-4 grid-cols-4">
+    <div className="grid gap-4 grid-cols-5 mt-5">
       {new Array(10).fill(0).map(() => (
         <Card>
           <CardContent className="p-0">
