@@ -21,7 +21,7 @@ const Pagination = ({
     <TPagination className="mt-5">
       <PaginationPrevious
         className={cn("cursor-pointer", {
-          "cursor-not-allowed": page === 1 || data?.bikes.length === 0,
+          "cursor-not-allowed": page === 1,
         })}
         onClick={() => {
           if (page > 1) {
