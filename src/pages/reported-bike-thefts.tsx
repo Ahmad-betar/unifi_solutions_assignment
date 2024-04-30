@@ -1,10 +1,10 @@
+import { getReportedBikeTheftsType } from "@/api/Type";
 import { getReportedBikeTheftsQuery } from "@/api/reported-bike-thefts";
 import DateRangePicker from "@/components/date-range-picker";
 import Loading from "@/components/loading";
 import NoImg from "@/components/no-image";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -13,24 +13,49 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
-  PaginationEllipsis,
-  PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { DateRange } from "react-day-picker";
 
 const ReportedBikeThefts = () => {
+  const queryClient = useQueryClient();
   const [page, setpage] = useState(1);
   const [query, setquery] = useState<string>("");
-  let { data, isLoading, isError, refetch } = getReportedBikeTheftsQuery({
+  const [date, setDate] = React.useState<DateRange | undefined>(undefined);
+
+  var { data, isLoading, isError, refetch } = getReportedBikeTheftsQuery({
     page,
     query,
   });
-  console.log(data);
+  console.log(data, "in");
 
+  console.log(date);
+
+  useEffect(() => {
+    if (!date?.from && !date?.to) {
+      refetch();
+    }
+    if (date?.from && date.to) {
+      queryClient.setQueryData(
+        ["get-reported-bike-thefts", page, query],
+        (oldData: getReportedBikeTheftsType) => {
+          console.log(oldData, "etstsetset");
+          return {
+            bikes: oldData.bikes.filter(
+              (bike) =>
+                bike.date_stolen < new Date(date.to!).getTime() / 1000 &&
+                bike.date_stolen > new Date(date.from!).getTime() / 1000
+            ),
+          };
+        }
+      );
+    }
+  }, [date]);
   if (data?.bikes.length === 0) {
     return <>No data</>;
   }
@@ -51,7 +76,7 @@ const ReportedBikeThefts = () => {
           setquery(event.target.value);
         }}
       />
-      <DateRangePicker />
+      <DateRangePicker date={date} setDate={setDate} />
       <div className="my-8 grid grid-cols-4 gap-4 ">
         {data?.bikes.map((bike, idx) => {
           return (
