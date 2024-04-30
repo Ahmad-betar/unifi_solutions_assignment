@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useTheme } from "./theme-provider";
 import NoDataIcon from "@/icons/no-data";
 const NoData = () => {
